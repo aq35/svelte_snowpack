@@ -4,19 +4,65 @@ import {
 	SvelteComponent,
 	append,
 	attr,
+	create_component,
+	destroy_component,
 	detach,
 	element,
 	init,
 	insert,
+	mount_component,
 	noop,
 	safe_not_equal,
 	set_data,
 	space,
 	src_url_equal,
-	text
+	text,
+	transition_in,
+	transition_out
 } from "../_snowpack/pkg/svelte/internal.js";
 
 import { onMount } from '../_snowpack/pkg/svelte.js';
+import { test } from './App.js';
+import Study from './Study/Study.svelte.js';
+
+function create_title_slot(ctx) {
+	let span;
+
+	return {
+		c() {
+			span = element("span");
+			span.textContent = "devDependencies";
+			attr(span, "slot", "title");
+		},
+		m(target, anchor) {
+			insert(target, span, anchor);
+		},
+		p: noop,
+		d(detaching) {
+			if (detaching) detach(span);
+		}
+	};
+}
+
+// (75:6) 
+function create_body_slot(ctx) {
+	let span;
+
+	return {
+		c() {
+			span = element("span");
+			span.textContent = "\"@snowpack/plugin-dotenv\"";
+			attr(span, "slot", "body");
+		},
+		m(target, anchor) {
+			insert(target, span, anchor);
+		},
+		p: noop,
+		d(detaching) {
+			if (detaching) detach(span);
+		}
+	};
+}
 
 function create_fragment(ctx) {
 	let div;
@@ -24,15 +70,31 @@ function create_fragment(ctx) {
 	let img;
 	let img_src_value;
 	let t0;
+	let t1_value = test() + "";
+	let t1;
+	let t2;
 	let p0;
-	let t4;
-	let p1;
-	let t5;
-	let code1;
 	let t6;
+	let p1;
 	let t7;
+	let code1;
 	let t8;
+	let t9;
+	let t10;
+	let study;
+	let t11;
 	let p2;
+	let current;
+
+	study = new Study({
+			props: {
+				$$slots: {
+					body: [create_body_slot],
+					title: [create_title_slot]
+				},
+				$$scope: { ctx }
+			}
+		});
 
 	return {
 		c() {
@@ -40,15 +102,19 @@ function create_fragment(ctx) {
 			header = element("header");
 			img = element("img");
 			t0 = space();
+			t1 = text(t1_value);
+			t2 = space();
 			p0 = element("p");
 			p0.innerHTML = `Edit <code class="svelte-190tdcp">src/App.svelte</code> and save to reload.`;
-			t4 = space();
+			t6 = space();
 			p1 = element("p");
-			t5 = text("Page has been open for ");
+			t7 = text("Page has been open for ");
 			code1 = element("code");
-			t6 = text(/*count*/ ctx[0]);
-			t7 = text(" seconds.");
-			t8 = space();
+			t8 = text(/*count*/ ctx[0]);
+			t9 = text(" seconds.");
+			t10 = space();
+			create_component(study.$$.fragment);
+			t11 = space();
 			p2 = element("p");
 			p2.innerHTML = `<a class="App-link svelte-190tdcp" href="https://svelte.dev" target="_blank" rel="noopener noreferrer">Learn Svelte</a>`;
 			if (!src_url_equal(img.src, img_src_value = "/logo.svg")) attr(img, "src", img_src_value);
@@ -66,23 +132,43 @@ function create_fragment(ctx) {
 			append(div, header);
 			append(header, img);
 			append(header, t0);
+			append(header, t1);
+			append(header, t2);
 			append(header, p0);
-			append(header, t4);
+			append(header, t6);
 			append(header, p1);
-			append(p1, t5);
-			append(p1, code1);
-			append(code1, t6);
 			append(p1, t7);
-			append(header, t8);
+			append(p1, code1);
+			append(code1, t8);
+			append(p1, t9);
+			append(header, t10);
+			mount_component(study, header, null);
+			append(header, t11);
 			append(header, p2);
+			current = true;
 		},
 		p(ctx, [dirty]) {
-			if (dirty & /*count*/ 1) set_data(t6, /*count*/ ctx[0]);
+			if (!current || dirty & /*count*/ 1) set_data(t8, /*count*/ ctx[0]);
+			const study_changes = {};
+
+			if (dirty & /*$$scope*/ 2) {
+				study_changes.$$scope = { dirty, ctx };
+			}
+
+			study.$set(study_changes);
 		},
-		i: noop,
-		o: noop,
+		i(local) {
+			if (current) return;
+			transition_in(study.$$.fragment, local);
+			current = true;
+		},
+		o(local) {
+			transition_out(study.$$.fragment, local);
+			current = false;
+		},
 		d(detaching) {
 			if (detaching) detach(div);
+			destroy_component(study);
 		}
 	};
 }

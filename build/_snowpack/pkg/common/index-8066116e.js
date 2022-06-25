@@ -1,5 +1,10 @@
 function noop() {
 }
+function assign(tar, src) {
+  for (const k in src)
+    tar[k] = src[k];
+  return tar;
+}
 function run(fn) {
   return fn();
 }
@@ -25,6 +30,57 @@ function src_url_equal(element_src, url) {
 }
 function is_empty(obj) {
   return Object.keys(obj).length === 0;
+}
+function create_slot(definition, ctx, $$scope, fn) {
+  if (definition) {
+    const slot_ctx = get_slot_context(definition, ctx, $$scope, fn);
+    return definition[0](slot_ctx);
+  }
+}
+function get_slot_context(definition, ctx, $$scope, fn) {
+  return definition[1] && fn ? assign($$scope.ctx.slice(), definition[1](fn(ctx))) : $$scope.ctx;
+}
+function get_slot_changes(definition, $$scope, dirty, fn) {
+  if (definition[2] && fn) {
+    const lets = definition[2](fn(dirty));
+    if ($$scope.dirty === void 0) {
+      return lets;
+    }
+    if (typeof lets === "object") {
+      const merged = [];
+      const len = Math.max($$scope.dirty.length, lets.length);
+      for (let i = 0; i < len; i += 1) {
+        merged[i] = $$scope.dirty[i] | lets[i];
+      }
+      return merged;
+    }
+    return $$scope.dirty | lets;
+  }
+  return $$scope.dirty;
+}
+function update_slot_base(slot, slot_definition, ctx, $$scope, slot_changes, get_slot_context_fn) {
+  if (slot_changes) {
+    const slot_context = get_slot_context(slot_definition, ctx, $$scope, get_slot_context_fn);
+    slot.p(slot_context, slot_changes);
+  }
+}
+function get_all_dirty_from_scope($$scope) {
+  if ($$scope.ctx.length > 32) {
+    const dirty = [];
+    const length = $$scope.ctx.length / 32;
+    for (let i = 0; i < length; i++) {
+      dirty[i] = -1;
+    }
+    return dirty;
+  }
+  return -1;
+}
+function compute_slots(slots) {
+  const result = {};
+  for (const key in slots) {
+    result[key] = true;
+  }
+  return result;
 }
 function append(target, node) {
   target.appendChild(node);
@@ -128,11 +184,44 @@ function update($$) {
   }
 }
 const outroing = new Set();
+let outros;
+function group_outros() {
+  outros = {
+    r: 0,
+    c: [],
+    p: outros
+  };
+}
+function check_outros() {
+  if (!outros.r) {
+    run_all(outros.c);
+  }
+  outros = outros.p;
+}
 function transition_in(block, local) {
   if (block && block.i) {
     outroing.delete(block);
     block.i(local);
   }
+}
+function transition_out(block, local, detach2, callback) {
+  if (block && block.o) {
+    if (outroing.has(block))
+      return;
+    outroing.add(block);
+    outros.c.push(() => {
+      outroing.delete(block);
+      if (callback) {
+        if (detach2)
+          block.d(1);
+        callback();
+      }
+    });
+    block.o(local);
+  }
+}
+function create_component(block) {
+  block && block.c();
 }
 function mount_component(component, target, anchor, customElement) {
   const {fragment, on_mount, on_destroy: on_destroy2, after_update} = component.$$;
@@ -242,4 +331,4 @@ class SvelteComponent {
   }
 }
 
-export { SvelteComponent as S, append as a, attr as b, insert as c, detach as d, element as e, set_data as f, space as g, src_url_equal as h, init as i, noop as n, onMount as o, safe_not_equal as s, text as t };
+export { SvelteComponent as S, append as a, attr as b, create_component as c, destroy_component as d, detach as e, element as f, insert as g, set_data as h, init as i, space as j, src_url_equal as k, transition_in as l, mount_component as m, noop as n, onMount as o, transition_out as p, check_outros as q, compute_slots as r, safe_not_equal as s, text as t, create_slot as u, get_all_dirty_from_scope as v, get_slot_changes as w, group_outros as x, update_slot_base as y };

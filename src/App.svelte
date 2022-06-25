@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onMount} from 'svelte'
   import {test} from './App.js'
+  import Study from './Study/Study.svelte'
 
   let count: number = 0
   onMount(() => {
@@ -67,8 +68,15 @@
   <header class="App-header">
     <img src="/logo.svg" class="App-logo" alt="logo"/>
     {test()}
+
     <p>Edit <code>src/App.svelte</code> and save to reload.</p>
     <p>Page has been open for <code>{count}</code> seconds.</p>
+  
+    <Study>
+      <span slot="title">devDependencies</span>
+      <span slot="body">"@snowpack/plugin-dotenv"</span>
+    </Study>
+    
     <p>
       <a class="App-link" href="https://svelte.dev" target="_blank" rel="noopener noreferrer">
         Learn Svelte
